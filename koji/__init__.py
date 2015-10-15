@@ -338,7 +338,7 @@ class ConfigurationError(GenericError):
     faultCode = 1021
 
 class LiveMediaError(GenericError):
-    """Raised when LiveMedia Image creation fails"""
+    """Raised when LiveMEDIA Image creation fails"""
     faultCode = 1022
 
 class MultiCallInProgress(object):
@@ -2555,7 +2555,7 @@ def _taskLabel(taskInfo):
             else:
                 kickstart = os.path.basename(stuff[4])
             extra = '%s, %s-%s, %s' % (stuff[3], stuff[0], stuff[1], kickstart)
-    elif method in ('createLiveCD', 'createAppliance', 'createImage', 'createLiveMedia'):
+    elif method in ('createLiveCD', 'createAppliance', 'createImage', 'createLiveMEDIA'):
         if taskInfo.has_key('request'):
             stuff = taskInfo['request']
             if method == 'createImage':
