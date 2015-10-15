@@ -5248,26 +5248,32 @@ def handle_spin_livemedia(options, session, args):
         help=_("Run the livemedia creation task at a lower priority"))
     parser.add_option("--ksurl", metavar="SCMURL",
         help=_("The URL to the SCM containing the kickstart file"))
-    parser.add_option("--install-tree-url", metavar="URL",
-        help=_("Provide the URL for the install tree"))
     parser.add_option("--ksversion", metavar="VERSION",
         help=_("The syntax version used in the kickstart file"))
     parser.add_option("--scratch", action="store_true",
-        help=_("Create a scratch LiveMedia image"))
+        help=_("Create a scratch LiveMEDIA image"))
     parser.add_option("--repo", action="append",
         help=_("Specify a repo that will override the repo used to install " +
-               "RPMs in the LiveMedia. May be used multiple times. The " +
+               "RPMs in the LiveMEDIA. May be used multiple times. The " +
                "build tag repo associated with the target is the default."))
     parser.add_option("--release", help=_("Forcibly set the release field"))
-    parser.add_option("--title", help=_("Set the image title (defaults to <name>)"))
     parser.add_option("--specfile", metavar="URL",
         help=_("SCM URL to spec file fragment to use to generate wrapper RPMs"))
     parser.add_option("--skip-tag", action="store_true",
                       help=_("Do not attempt to tag package"))
     (task_options, args) = parser.parse_args(args)
 
+    # LMC operations
+    parser.add_option("--disk-img", action="store_true",
+                      help=_("Spin bootable disk media"))
+
+    parser.add_option("--live-ostree-pxe", action="store_true",
+                      help=_("Spin live ostree PXE media"))
+
+    parser.add_option("--live-iso", action="store_true",
+                      help=_("Spin live ISO media"))
+
     # Make sure the target and kickstart is specified.
-    print 'spin-livecd is deprecated and will be replaced with spin-livemedia'
     if len(args) != 5:
         parser.error(_("Five arguments are required: a name, a version, an" +
                        " architecture, a build target, and a relative path to" +
