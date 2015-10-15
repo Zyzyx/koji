@@ -60,7 +60,7 @@ from optparse import OptionParser, SUPPRESS_HELP
 from StringIO import StringIO
 from yum import repoMDObject
 
-#imports for LiveCD, LiveMedia, and Appliance handler
+#imports for LiveCD, LiveMEDIA, and Appliance handler
 image_enabled = False
 try:
     import pykickstart.parser as ksparser
@@ -3011,73 +3011,51 @@ class LiveMediaTask(ImageTask):
         kskoji = self.prepareKickstart(repo_info, target_info, arch, broot, opts)
 
         cachedir = '/tmp/koji-livemedia'   # arbitrary paths in chroot
-        livemedia_log = '/tmp/lmc-logs/livemedia-out.log'
-        resultdir = '/tmp/lmc'
+        livemedia_log = '/tmp/livemedia.log'
 
-
-        # Common LMC command setup, needs extending
+		# Common LMC command setup, needs extending
         cmd = ['/sbin/livemedia-creator',
-               '--ks', kskoji,
+               '-ks', kskoji,
                '--logfile', livemedia_log,
                '--no-virt',
-               '--resultdir', resultdir,
-               '--project', name,
-               #'--tmp', '/tmp'
+               '--tmp', '/tmp'
               ]
 
-        # note: at the moment, we are only generating live isos. We may add support
-        # for other types in the future
+        # Determine what LMC opperation we are doing: live-iso, live-pxe, disk-img.
+        if live-iso:
+            # we set the fs label to the same as the isoname if it exists,
+            # taking at most 32 characters
+            isoname = '%s-%s-%s' % (name, version, release)
+            cmd.extend(['--make-iso', '--volid', isoname[:32]])
 
-        cmd.extend(['--make-iso',
-                    '--volid', self._shortenVolID(name, version, release),
-                    '--iso-only',
-                   ])
+		elif live-ostree-pxe:
+            cmd.extend(['--make-ostree-live'])
 
-        isoname='%s-%s-%s-%s.iso' % (name, arch, version, release)
-        title = self.opts.get('title', name)
-        cmd.extend(['--iso-name', isoname,
-                    '--releasever', version,
-                    '--title', title,
-                   ])
+		elif disk-img:
+            img_name='disk.img'
+            prj_name='Fedora'
+            cmd.extend(['--make-disk',
+                        '--image-name', img_name,
+                        '--project', prj_name,
+                        '--releasever', release
+                       ])
 
-
-        if arch == 'x86_64':
-            cmd.append('--macboot')
-
+		else
+			# bail
+			raise koji.LiveMediaError, \
+				'This task needs an option:  --live-iso or --live-ostree-pxe or --disk-img'
 
         # Run livemedia-creator
         rv = broot.mock(['--cwd', '/tmp', '--chroot', '--'] + cmd)
-
-        # upload logs
-        logdirs = [
-            os.path.join(broot.rootdir(), 'tmp/lmc-logs'),
-            os.path.join(broot.rootdir(), 'tmp/lmc-logs/anaconda'),
-            ]
-        for logdir in logdirs:
-            if not os.path.isdir(logdir):
-                continue
-            for filename in os.listdir(logdir):
-                if not filename.endswith('.log'):
-                    continue
-                filepath = os.path.join(logdir, filename)
-                if os.stat(filepath).st_size == 0:
-                    continue
-                # avoid file duplication between directories by prefixing anaconda logs
-                if logdir.endswith('anaconda'):
-                    self.uploadFile(os.path.join(filepath), remoteName='anaconda-%s' % filename)
-                    continue
-
-                self.uploadFile(os.path.join(filepath))
-
+        self.uploadFile(os.path.join(broot.rootdir(), livemedia_log[1:]))
         if rv:
             raise koji.LiveMediaError, \
-                'Could not create LiveMedia: %s' % parseStatus(rv, 'livemedia-creator') + '; see root.log or livemedia-out.log for more information'
+                'Could not create LiveMedia: %s' % parseStatus(rv, 'livemedia-creator') + '; see root.log or livemedia.log for more information'
 
         # Find the resultant iso
         # The cwd of the livemedia-creator process is /tmp in the chroot, so
         # that is where it writes the .iso
-        rootresultsdir = os.path.join(broot.rootdir(), resultdir.lstrip('/'))
-        files = os.listdir(rootresultsdir)
+        files = os.listdir(os.path.join(broot.rootdir(), 'tmp'))
         isofile = None
         for afile in files:
             if afile.endswith('.iso'):
@@ -3087,14 +3065,17 @@ class LiveMediaTask(ImageTask):
                     raise koji.LiveMediaError, 'multiple .iso files found: %s and %s' % (isofile, afile)
         if not isofile:
             raise koji.LiveMediaError, 'could not find iso file in chroot'
-        isosrc = os.path.join(rootresultsdir, isofile)
+        isosrc = os.path.join(broot.rootdir(), 'tmp', isofile)
 
+        # copy the iso out of the chroot. If we were given an isoname,
+        # this is where the renaming happens.
+        self.logger.debug('uploading image: %s' % isosrc)
+        isoname += '.iso'
 
         # Generate the file manifest of the image, upload the results
         manifest = os.path.join(broot.resultdir(), 'manifest.log')
         self.genISOManifest(isosrc, manifest)
         self.uploadFile(manifest)
-        self.logger.debug('uploading image: %s' % isosrc)
         self.uploadFile(isosrc, remoteName=isoname)
 
         imgdata = {'arch': arch,
@@ -3102,19 +3083,17 @@ class LiveMediaTask(ImageTask):
             'rootdev': None,
             'task_id': self.id,
             'logs': ['build.log', 'mock_output.log', 'root.log', 'state.log',
-                     'livemedia-out.log', os.path.basename(ksfile),
+                     'livemedia.log', os.path.basename(ksfile),
                      os.path.basename(kskoji)],
             'name': name,
             'version': version,
             'release': release
         }
         if not opts.get('scratch'):
-            # TODO - generate list of rpms in image
-            # (getImagePackages doesn't work here)
-            #hdrlist = self.getImagePackages(os.path.join(broot.rootdir(),
-            #                                cachedir[1:]))
-            imgdata ['rpmlist'] = []
-            #broot.markExternalRPMs(hdrlist)
+            hdrlist = self.getImagePackages(os.path.join(broot.rootdir(),
+                                            cachedir[1:]))
+            imgdata ['rpmlist'] = hdrlist
+            broot.markExternalRPMs(hdrlist)
 
         broot.expire()
         return imgdata
