@@ -2515,7 +2515,7 @@ def _taskLabel(taskInfo):
         if taskInfo.has_key('request'):
             build = taskInfo['request'][1]
             extra = buildLabel(build)
-    elif method == 'newRepo':
+    elif method in ('newRepo', 'signedRepo'):
         if taskInfo.has_key('request'):
             extra = str(taskInfo['request'][0])
     elif method in ('tagBuild', 'tagNotification'):
@@ -2526,7 +2526,7 @@ def _taskLabel(taskInfo):
         if taskInfo.has_key('request'):
             tagInfo = taskInfo['request'][0]
             extra = tagInfo['name']
-    elif method == 'createrepo':
+    elif method in ('createrepo', 'createsignedrepo'):
         if taskInfo.has_key('request'):
             arch = taskInfo['request'][1]
             extra = arch
