@@ -3013,7 +3013,7 @@ class LiveMediaTask(ImageTask):
         cachedir = '/tmp/koji-livemedia'   # arbitrary paths in chroot
         livemedia_log = '/tmp/livemedia.log'
 
-		# Common LMC command setup, needs extending
+        # Common LMC command setup, needs extending
         cmd = ['/sbin/livemedia-creator',
                '-ks', kskoji,
                '--logfile', livemedia_log,
