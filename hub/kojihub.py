@@ -11714,7 +11714,7 @@ class HostExports(object):
                         try:
                             os.link(rpmpath, os.path.join(archdir, bnp[0], bnp))
                         except OSError, ose:
-                            if ose.error == 18:
+                            if ose.errno == 18:
                                 shutil.copy2(
                                     rpmpath, os.path.join(archdir, bnp[0], bnp))
                             else:
