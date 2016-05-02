@@ -263,6 +263,13 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/kojid/kojid.conf
 %attr(-,kojibuilder,kojibuilder) %{_sysconfdir}/mock/koji
 
+%files builder-plugins
+%defattr(-,root,root)
+%dir %{_sysconfdir}/kojid/plugins
+%config(noreplace) %{_sysconfdir}/kojid/plugins/*.conf
+%dir %{_prefix}/lib/koji-builder-plugins
+%{_prefix}/lib/koji-builder-plugins/*.py*
+
 %pre builder
 /usr/sbin/useradd -r -s /bin/bash -G mock -d /builddir -M kojibuilder 2>/dev/null ||:
 
