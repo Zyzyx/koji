@@ -4612,6 +4612,7 @@ class createSignedRepoTask(CreaterepoTask):
                 if mlm.select(po) and self.archmap.has_key(arch):
                     # we need a multilib package to be included
                     # we assume the same signature level is available
+                    # XXX: what is a subarchitecture is the right answer?
                     pl_path = pkg.replace(arch, self.archmap[arch]).strip()
                     # assume this exists in the task results for the ml arch
                     real_path = os.path.join(mldir, pl_path)
@@ -4716,7 +4717,7 @@ enabled=1
         # it is possible to see the results of other committed transactions
         rpms = []
         builddirs = {}
-        for a in (arch, 'noarch'):
+        for a in self.compat[arch] + ['noarch']:
             rpm_iter, builds = self.session.listTaggedRPMS(tag_id,
                 event=opts['event'], arch=a, latest=opts['latest'],
                 inherit=opts['inherit'], rpmsigs=True)
