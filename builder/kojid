@@ -4717,7 +4717,7 @@ enabled=1
         # it is possible to see the results of other committed transactions
         rpms = []
         builddirs = {}
-        for a in self.compat[arch] + ['noarch']:
+        for a in self.compat[arch] + ('noarch',):
             rpm_iter, builds = self.session.listTaggedRPMS(tag_id,
                 event=opts['event'], arch=a, latest=opts['latest'],
                 inherit=opts['inherit'], rpmsigs=True)
