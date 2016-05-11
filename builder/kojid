@@ -4472,8 +4472,12 @@ class NewSignedRepoTask(BaseTaskHandler):
         if len(task_opts['arch']) == 0:
             raise koji.GenericError('No arches specified nor for the tag!')
         subtasks = {}
-        arch32s = set()
+        # weed out subarchitectures
+        canonArches = set()
         for arch in task_opts['arch']:
+            canonArches.add(koji.canonArch(arch))
+        arch32s = set()
+        for arch in canonArches:
             if not rpmUtils.arch.isMultiLibArch(arch):
                 arch32s.add(arch)
         for arch in arch32s:
@@ -4491,7 +4495,7 @@ class NewSignedRepoTask(BaseTaskHandler):
                 upload, files, keypaths = results[subtasks[arch]]
                 self.session.host.signedRepoMove(
                     repo_id, upload, files, arch, keypaths)
-        for arch in task_opts['arch']:
+        for arch in canonArches:
             # do the other arches
             if arch not in arch32s:
                 arglist = [tag, repo_id, arch, keys, task_opts]
@@ -4700,9 +4704,9 @@ enabled=1
         pkgwriter = open(self.pkglist, 'a')
         for ml_pkg in ml_needed:
             bnp = os.path.basename(ml_pkg)
-            pkgwriter.write(bnp[0] + '/' + bnp + '\n')
-            koji.ensuredir(os.path.join(self.repodir, bnp[0]))
-            os.symlink(ml_pkg, os.path.join(self.repodir, bnp[0], bnp))
+            pkgwriter.write(bnp[0].lower() + '/' + bnp + '\n')
+            koji.ensuredir(os.path.join(self.repodir, bnp[0].lower()))
+            os.symlink(ml_pkg, os.path.join(self.repodir, bnp[0].lower(), bnp))
             self.keypaths[bnp] = ml_pkg
 
 
@@ -4755,10 +4759,11 @@ enabled=1
                 fs_missing.add(pkgpath)
             else:
                 bnp = os.path.basename(pkgpath)
-                pkglist.write(bnp[0] + '/' + bnp + '\n')
-                koji.ensuredir(os.path.join(self.repodir, bnp[0]))
+                pkglist.write(bnp[0].lower() + '/' + bnp + '\n')
+                koji.ensuredir(os.path.join(self.repodir, bnp[0].lower()))
                 self.keypaths[bnp] = pkgpath
-                os.symlink(pkgpath, os.path.join(self.repodir, bnp[0], bnp))
+                os.symlink(pkgpath, os.path.join(self.repodir, bnp[0].lower(),
+                    bnp))
         pkglist.close()
         if len(fs_missing) > 0:
             raise koji.GenericError('Packages missing from the filesystem:\n' +
