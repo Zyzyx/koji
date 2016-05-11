@@ -11682,6 +11682,8 @@ class HostExports(object):
         """
         Very similar to repoDone, except only the uploads are completed.
         fullpaths is a dict like so: rpm file name -> sig"""
+        host = Host()
+        host.verify()
         workdir = koji.pathinfo.work()
         rinfo = repo_info(repo_id, strict=True)
         repodir = koji.pathinfo.signedrepo(repo_id, rinfo['tag_name'])

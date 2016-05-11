@@ -51,6 +51,7 @@ CREATE TABLE permissions (
 INSERT INTO permissions (name) VALUES ('admin');
 INSERT INTO permissions (name) VALUES ('build');
 INSERT INTO permissions (name) VALUES ('repo');
+INSERT INTO permissions (name) VALUES ('signed-repo');
 INSERT INTO permissions (name) VALUES ('image');
 INSERT INTO permissions (name) VALUES ('livecd');
 INSERT INTO permissions (name) VALUES ('maven-import');
