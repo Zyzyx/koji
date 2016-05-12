@@ -4592,6 +4592,9 @@ class createSignedRepoTask(CreaterepoTask):
                 files.append(f)
                 self.session.uploadWrapper('%s/%s' % (ddir, f),
                     self.uploadpath, f)
+        self.logger.debug('files: %s' % files)
+        self.logger.debug('keys: %s' % self.keypaths)
+        time.sleep(100)
         return [self.uploadpath, files, self.keypaths]
 
     def do_multilib(self, arch, ml_arch, conf):
