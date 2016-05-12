@@ -4491,7 +4491,7 @@ class NewSignedRepoTask(BaseTaskHandler):
             results = self.wait(subtasks.values(), all=True, failany=True)
             for arch in arch32s:
                 # move the 32-bit task output to the final resting place
-                # so the 64-bit arches can use it
+                # so the 64-bit arches can use it for multilib
                 upload, files, keypaths = results[subtasks[arch]]
                 self.session.host.signedRepoMove(
                     repo_id, upload, files, arch, keypaths)
@@ -4508,8 +4508,13 @@ class NewSignedRepoTask(BaseTaskHandler):
         for (arch, task_id) in subtasks.iteritems():
             data[arch] = results[task_id]
             self.logger.debug("DEBUG: %r : %r " % (arch, data[arch]))
-            if arch not in arch32s:
+            if task_opts['multilib']:
                 # we moved the 32-bit results before, do the 64-bit
+                if arch not in arch32s:
+                    upload, files, keypaths = results[subtasks[arch]]
+                    self.session.host.signedRepoMove(
+                        repo_id, upload, files, arch, keypaths)
+            else:
                 upload, files, keypaths = results[subtasks[arch]]
                 self.session.host.signedRepoMove(
                     repo_id, upload, files, arch, keypaths)
@@ -4592,9 +4597,6 @@ class createSignedRepoTask(CreaterepoTask):
                 files.append(f)
                 self.session.uploadWrapper('%s/%s' % (ddir, f),
                     self.uploadpath, f)
-        self.logger.debug('files: %s' % files)
-        self.logger.debug('keys: %s' % self.keypaths)
-        time.sleep(100)
         return [self.uploadpath, files, self.keypaths]
 
     def do_multilib(self, arch, ml_arch, conf):
