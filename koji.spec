@@ -113,16 +113,6 @@ Requires: createrepo >= 0.9.2
 koji-builder is the daemon that runs on build machines and executes
 tasks that come through the Koji system.
 
-%package builder-plugins
-Summary: Koji builder plugins
-Group: Applications/System
-License: LGPLv2
-Requires: %{name} = %{version}-%{release}
-Requires: %{name}-builder = %{version}-%{release}
-
-%description builder-plugins
-Plugins for a Koji builder
-
 %package vm
 Summary: Koji virtual machine management daemon
 Group: Applications/System
@@ -213,13 +203,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_prefix}/lib/koji-hub-plugins/*.py*
 %dir %{_sysconfdir}/koji-hub/plugins
 %config(noreplace) %{_sysconfdir}/koji-hub/plugins/*.conf
-
-%files builder-plugins
-%defattr(-,root,root)
-%dir %{_sysconfdir}/kojid/plugins
-%config(noreplace) %{_sysconfdir}/kojid/plugins/*.conf
-%dir %{_prefix}/lib/koji-builder-plugins
-%{_prefix}/lib/koji-builder-plugins/*.py*
 
 %files utils
 %defattr(-,root,root)
