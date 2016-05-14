@@ -20,11 +20,11 @@ class TestListing(unittest.TestCase):
     @mock.patch('kojihub.QueryProcessor')
     def test_list_tasks_basic_invocation(self, processor):
         generator = self.hub.listTasks()
-        list(generator)  # Exhaust the generator
+        results = list(generator)  # Exhaust the generator
         processor.assert_called_once_with(**self.standard_processor_kwargs)
 
     @mock.patch('kojihub.QueryProcessor')
-    def test_list_tasks_by_owner_as_int(self, processor):
+    def test_list_tasks_by_owner(self, processor):
         generator = self.hub.listTasks(opts={'owner': 1})
         results = list(generator)  # Exhaust the generator
         arguments = self.standard_processor_kwargs.copy()
@@ -33,7 +33,7 @@ class TestListing(unittest.TestCase):
         self.assertEqual(results, [])
 
     @mock.patch('kojihub.QueryProcessor')
-    def test_list_tasks_by_not_owner_as_int(self, processor):
+    def test_list_tasks_by_not_owner(self, processor):
         generator = self.hub.listTasks(opts={'not_owner': 1})
         results = list(generator)  # Exhaust the generator
         arguments = self.standard_processor_kwargs.copy()
@@ -59,20 +59,3 @@ class TestListing(unittest.TestCase):
         processor.assert_called_once_with(**arguments)
         self.assertEqual(results, [])
 
-    @mock.patch('kojihub.QueryProcessor')
-    def test_list_tasks_by_owner_as_list(self, processor):
-        generator = self.hub.listTasks(opts={'owner': [1, 2]})
-        results = list(generator)  # Exhaust the generator
-        arguments = self.standard_processor_kwargs.copy()
-        arguments['clauses'] = ['owner IN %(owner)s']
-        processor.assert_called_once_with(**arguments)
-        self.assertEqual(results, [])
-
-    @mock.patch('kojihub.QueryProcessor')
-    def test_list_tasks_by_not_owner_as_list(self, processor):
-        generator = self.hub.listTasks(opts={'not_owner': [1, 2]})
-        results = list(generator)  # Exhaust the generator
-        arguments = self.standard_processor_kwargs.copy()
-        arguments['clauses'] = ['owner NOT IN %(not_owner)s']
-        processor.assert_called_once_with(**arguments)
-        self.assertEqual(results, [])

@@ -65,10 +65,7 @@ git-clean:
 	@git clean -d -q -x
 
 test:
-	coverage erase
-	PYTHONPATH=hub/.:plugins/hub/. nosetests --with-coverage --cover-package .
-	coverage html
-	@echo Coverage report in htmlcov/index.html
+	PYTHONPATH=hub/. nosetests --with-coverage --cover-package .
 
 subdirs:
 	for d in $(SUBDIRS); do make -C $$d; [ $$? = 0 ] || exit 1; done

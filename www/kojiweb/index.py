@@ -283,10 +283,8 @@ def index(environ, packageOrder='package_name', packageStart=None):
     taskOpts = {'parent': None, 'decode': True}
     if user:
         taskOpts['owner'] = user['id']
-    if opts.get('HiddenUsers'):
-        taskOpts['not_owner'] = [
-            int(userid) for userid in opts['HiddenUsers'].split()
-        ]
+    if opts.get('HiddenUser'):
+        taskOpts['not_owner'] = opts['HiddenUser']
     values['tasks'] = server.listTasks(
         opts=taskOpts,
         queryOpts={'order': '-id', 'limit': 10}
